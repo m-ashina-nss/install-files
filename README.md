@@ -3,6 +3,15 @@
 このリポジトリは、アプリケーションのビルドや実行に必要な各種ファイル（例：`.tar` 形式のイメージファイル）を管理するためのものです。  
 Git LFS を利用して大容量ファイル（例：`maven-image.tar`）をバージョン管理しています。
 
+## 📂 ディレクトリ構成
+
+```bash
+├── maven-image.tar # Git LFS 管理対象
+├── .gitattributes # LFS 設定ファイル
+└── README.md # このファイル
+```
+
+
 ## 🛠️ LFS のセットアップ手順（Linux）
 
 ```bash
@@ -14,9 +23,11 @@ git add .gitattributes
 git commit -m "add maven-image.tar"
 git remote add origin https://github.com/m-ashina-nss/install-files.git
 git push origin master
+```
 
----
-### 🔍 Markdown書式上のポイント
+
+## 🔍 Markdown書式上のポイント
+
 - **行末に2つのスペース（␣␣）で改行**を実現
 - セクションごとに `---` で区切ると見やすい
 - コードブロックは ```` ```bash ```` や ```` ```md ```` を使う
