@@ -18,6 +18,7 @@ Git LFS を利用して大容量ファイル（例：`maven-image.tar`）をバ�
 git init
 git lfs install
 git lfs track "*.tar"
+git lfs track "*.tgz"
 git add .\maven-image.tar
 git add .gitattributes
 git commit -m "add maven-image.tar"
@@ -29,6 +30,18 @@ git push origin master
 ```bash
 docker pull maven:3.9.5-eclipse-temurin-21
 docker save maven:3.9.5-eclipse-temurin-21 -o maven-image.tar
+
+# オフライン環境に持ち込み、以下を実行する
+docker load -i maven-3.9.5-java21.tar
+
+# GitLab CI や IntelliJ が Maven を使うには、依存JARを事前に取得してローカルリポジトリ化する必要があります
+#オンライン側で実行
+mvn dependency:go-offline
+#オフライン側に持ち込む
+.m2/repository フォルダを丸ごとコピー
+GitLab CIなら .gitlab-ci.yml でキャッシュ指定済み
+IntelliJにもこのフォルダを指定すればOK
+
 ```
 
 ## 🔍 Markdown書式上のポイント
