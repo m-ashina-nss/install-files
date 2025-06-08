@@ -25,6 +25,11 @@ git remote add origin https://github.com/m-ashina-nss/install-files.git
 git push origin master
 ```
 
+## 🏗️ maven-image.tar の作成方法
+```bash
+docker pull maven:3.9.5-eclipse-temurin-21
+docker save maven:3.9.5-eclipse-temurin-21 -o maven-image.tar
+```
 
 ## 🔍 Markdown書式上のポイント
 
