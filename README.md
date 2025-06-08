@@ -12,7 +12,7 @@ Git LFS を利用して大容量ファイル（例：`maven-image.tar`）をバ�
 ```
 
 
-## 🛠️ LFS のセットアップ手順（Linux）
+## 🛠️ LFS のセットアップ手順
 
 ```bash
 git init
