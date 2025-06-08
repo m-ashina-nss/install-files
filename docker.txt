@@ -115,3 +115,4 @@ chmod +x install-docker-offline.sh enable-docker-load.sh
 これで、Gitサーバーが毎日リブートしても自動で `maven:3.9.5-eclipse-temurin-21` イメージがロードされ、オフラインでもCIが安定稼働します。
 
 複数の `.tar` を扱いたい場合は `docker load` 行を増やせばOKです。
+
