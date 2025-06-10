@@ -44,6 +44,11 @@ IntelliJにもこのフォルダを指定すればOK
 
 ```
 
+## その他持ち込みファイル
+
+https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe
+
+
 ## 🔍 Markdown書式上のポイント
 
 - **行末に2つのスペース（␣␣）で改行**を実現
