@@ -46,8 +46,12 @@ IntelliJにもこのフォルダを指定すればOK
 
 ## その他持ち込みファイル
 
-https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe
 
+https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64
+
+Invoke-WebRequest -Uri "https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64" -OutFile "gitlab-runner-linux-amd64"
+
+tar -czvf gitlab-runner-linux-amd64.tar.gz gitlab-runner-linux-amd64
 
 ## 🔍 Markdown書式上のポイント
 
