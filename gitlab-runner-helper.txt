@@ -1,0 +1,45 @@
+GitLab Runner をオフラインで使う手順（registry:2 使用・構成図・pull_policy 対応）
+【目的】
+GitLab Runner を完全オフライン環境で動作させるため、必要な Docker
+イメージを事前に取得し、registry:2 を使って一部をローカルに保存し、alpine:latest
+はローカルイメージとして docker load で直接使用します。
+【使用する Docker イメージ】
+- alpine:latest（docker load のみ。registry には登録しません）
+- gitlab/gitlab-runner-helper:x86_64-v18.0.2
+- registry:2（ローカルレジストリ用）
+【オンライン環境での操作】
+1. 必要なイメージを取得：
+docker pull alpine:latest
+docker pull gitlab/gitlab-runner-helper:x86_64-v18.0.2
+docker pull registry:2
+2. 保存して持ち込む：
+docker save -o alpine_latest.tar alpine:latest
+docker save -o helper_v1802.tar gitlab/gitlab-runner-helper:x86_64-v18.0.2
+docker save -o registry.tar registry:2
+【オフライン環境での操作】
+1. Docker イメージをロード：
+docker load -i registry.tar
+docker load -i alpine_latest.tar
+docker load -i helper_v1802.tar
+2. registry:2 を起動：
+docker run -d -p 5000:5000 --name registry registry:2
+3. gitlab-runner-helper をレジストリに登録：
+docker tag gitlab/gitlab-runner-helper:x86_64-v18.0.2 localhost:5000/gitlab-runner-helper:x86_64-v18.0.2
+docker push localhost:5000/gitlab-runner-helper:x86_64-v18.0.2
+【GitLab Runner の config.toml 設定例】
+[runners.docker]
+helper_image = "localhost:5000/gitlab-runner-helper:x86_64-v18.0.2"
+pull_policy = "never"
+【Docker insecure-registry 設定】
+/etc/docker/daemon.json に以下を追加：
+{ "insecure-registries": ["localhost:5000"] }
+その後 Docker を再起動：
+sudo systemctl restart docker
+【.gitlab-ci.yml の最小構成例】
+image:
+name: alpine:latest
+pull_policy: "never"
+job:
+script:
+- echo "Hello from offline Docker"
+これで、完全オフライン環境でも GitLab Runner をカスタマイズ構成で使用できます
