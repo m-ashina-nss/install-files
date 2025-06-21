@@ -59,3 +59,7 @@ tar -czvf gitlab-runner-linux-amd64.tar.gz gitlab-runner-linux-amd64
 - セクションごとに `---` で区切ると見やすい
 - コードブロックは ```` ```bash ```` や ```` ```md ```` を使う
 - `#` や `##` で見出しを適切に使うとGitHubで目次が自動生成される
+
+## memo
+https://chatgpt.com/share/6856327e-4dbc-800a-8a06-c4b1949dcf07
+
