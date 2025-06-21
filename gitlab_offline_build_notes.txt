@@ -1,0 +1,65 @@
+【オフラインGitLab + Spring Bootビルド環境構成メモ】
+
+◆ 前提
+- 開発環境：オンライン Windows（Spring Boot 3.4 + Java 21 + SQL Server + Maven）
+- GITサーバ：AWS EC2 Linux（オフライン、GitLab CE + Docker + GitLab Runner）
+- Web/Appサーバ：AWS EC2 Linux（オフライン）
+- Docker Images: maven:3.9.5-eclipse-temurin-21 など
+- Mavenの依存キャッシュ（.m2/repository）をオンラインWindowsから tar.gz にして GITサーバへ転送
+
+◆ GitLab Runner 構成（/etc/gitlab-runner/config.toml 抜粋）
+[runners.docker]
+  volumes = ["/cache/m2:/root/.m2"]
+
+◆ settings_docker.xml 内容（/root/.m2/setting_docker.xml）
+<settings>
+  <offline>true</offline>
+  <mirrors>
+    <mirror>
+      <id>disabled-remote</id>
+      <mirrorOf>*</mirrorOf>
+      <url>file://offline</url>
+    </mirror>
+  </mirrors>
+</settings>
+
+◆ .gitlab-ci.yml
+image: maven:3.9.5-eclipse-temurin-21
+
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - ls -l /root/.m2/repository/org/springframework/boot/spring-boot-starter-parent/3.4.4/
+    - mvn -s /root/.m2/setting_docker.xml clean package -o
+
+◆ 問題と原因
+- mvn -o 実行時に spring-boot-starter-parent-3.4.4.pom を探しにネットアクセスする
+→ .pom と .sha1 は存在するが、依存の「さらに上位の親POM」が不足している場合がある
+
+◆ 解決策
+1. 開発PC上で以下を実行し、完全な .m2/repository を生成：
+    mvn dependency:go-offline
+2. その後、~/.m2/repository を tar.gz にして GITサーバへ転送
+3. /cache/m2 へ展開し、chown して Runner がアクセス可能にする
+4. 必要に応じて .lastUpdated ファイル削除：
+    find /cache/m2 -name "*.lastUpdated" -delete
+
+◆ .m2 比較手順（持ち込んだものと go-offline 実行結果）
+- 差分確認：
+    diff -rq /path/repo1 /path/repo2
+- ファイル一覧比較：
+    find /path/repo1 -type f | sed 's|/path/repo1||' | sort > repo1.txt
+    find /path/repo2 -type f | sed 's|/path/repo2||' | sort > repo2.txt
+    comm -3 repo1.txt repo2.txt
+
+◆ 備考
+- cache: セクションは不要（volume により /root/.m2 を直接マウントしているため）
+- ビルドログに "Downloading from central" 等が出る場合、依存漏れの可能性あり
+
+◆ 推奨運用
+- Docker 上で go-offline を実行して .m2 を作成
+- 以降はそれを tar で固めて GITサーバに定期更新
+
