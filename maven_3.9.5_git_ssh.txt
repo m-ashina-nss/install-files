@@ -1,0 +1,39 @@
+✅ 目的
+Windows の Docker Desktop を使って、
+maven:3.9.5-eclipse-temurin-21 をベースに git + openssh-client を含む Docker イメージ（例：maven:3.9.5-git-ssh）をビルドし、
+オフライン環境（LinuxのGitLabサーバ）に持ち込む。
+
+✅ 手順（Windows Docker Desktop で作業）
+① Dockerfile を作成（任意のディレクトリ）
+例：C:\Users\yourname\docker\maven-git-ssh\Dockerfile
+
+
+FROM maven:3.9.5-eclipse-temurin-21
+
+RUN apt-get update && \
+    apt-get install -y git openssh-client && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+② PowerShell または WSL ターミナルでビルド
+cd C:\Users\yourname\docker\maven-git-ssh
+docker build -t maven:3.9.5-git-ssh .
+成功すると以下のように表示されます：
+
+Successfully tagged maven:3.9.5-git-ssh
+
+③ tar にエクスポートして保存
+docker save -o maven_3.9.5_git_ssh.tar maven:3.9.5-git-ssh
+ファイルは C:\Users\yourname\docker\maven-git-ssh\maven_3.9.5_git_ssh.tar に作成されます。
+
+✅ オフラインサーバでロード
+docker load -i /tmp/maven_3.9.5_git_ssh.tar
+ロード後は：
+
+
+docker images
+で maven:3.9.5-git-ssh が表示されるはずです。
+
+✅ GitLab CI (.gitlab-ci.yml) 側での指定
+
+image: maven:3.9.5-git-ssh
+これで、CIパイプラインから git や scp を使えるようになります。
