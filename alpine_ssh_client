@@ -1,0 +1,35 @@
+オフライン環境で SCP を使うための Docker イメージ作成手順書
+
+この手順では、オフライン環境で `scp` コマンドを使えるようにするための、Alpine ベースの軽量
+
+Docker イメージの作成方法を説明します。
+
+【ステップ 1】オンライン環境で Dockerfile を用意
+以下の内容で Dockerfile を作成してください： 
+
+FROM alpine:latest RUN apk update && apk add --no-cache openssh-client
+
+【ステップ 2】Docker イメージをビルド
+
+docker build -t alpine-ssh-client .
+
+【ステップ 3】イメージを保存してオフラインに持ち込む
+
+docker save -o alpine_ssh_client.tar alpine-ssh-client
+
+【ステップ 4】オフライン環境でイメージをロード
+
+docker load -i alpine_ssh_client.tar
+
+【ステップ 5】scp を使う
+
+以下のように `docker run` で SCP を使用可能です：
+
+docker run --rm alpine-ssh-client \ sh -c "scp -o StrictHostKeyChecking=no file.txt
+
+user@192.168.1.100:/home/user/"
+
+※ 上記コマンドは公開鍵認証または事前に known_hosts
+を設定済みであることを前提としています。
+※ `-o StrictHostKeyChecking=no` により初回の接続確認を自動スキップしています。
+この手順により、オフラインサーバー上でも SCP を用いたファイル転送が可能になります
