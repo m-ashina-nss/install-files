@@ -1,0 +1,102 @@
+【Spring Boot 3.4 + Java 21 + SQL Server + Maven (application.yml) での外部API連携手順】
+
+■ 想定構成
+- Spring Boot 3.4 / Java 21
+- SQL Server
+- Maven（設定ファイルは application.yml）
+- 他のシステムのAPIを OpenAPI（openapi.yml）で定義済み
+
+============================================================
+■ 1. OpenAPI クライアントの自動生成（Maven設定）
+
+pom.xml に以下を追加：
+
+<plugin>
+  <groupId>org.openapitools</groupId>
+  <artifactId>openapi-generator-maven-plugin</artifactId>
+  <version>7.5.0</version>
+  <executions>
+    <execution>
+      <id>generate-api-client</id>
+      <goals>
+        <goal>generate</goal>
+      </goals>
+      <configuration>
+        <inputSpec>${project.basedir}/src/main/resources/openapi.yml</inputSpec>
+        <generatorName>java</generatorName>
+        <library>webclient</library>
+        <apiPackage>com.example.api</apiPackage>
+        <modelPackage>com.example.model</modelPackage>
+        <invokerPackage>com.example.invoker</invokerPackage>
+        <configOptions>
+          <dateLibrary>java8</dateLibrary> <!-- Java21でも推奨 -->
+        </configOptions>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+
+→ `mvn clean compile` でAPIクライアントコードが自動生成される。
+
+============================================================
+■ 2. アプリケーションからAPIを呼び出すコード例
+
+@Service
+public class ExternalApiService {
+    private final MyApi myApi;
+
+    public ExternalApiService(MyApi myApi) {
+        this.myApi = myApi;
+    }
+
+    public String callApi() {
+        return myApi.getSomething().getData();
+    }
+}
+
+============================================================
+■ 3. application.yml にAPIのベースURLを設定
+
+external-api:
+  base-url: https://api.example.com
+
+→ クライアント初期化時にこのURLを使って接続先を指定。
+
+============================================================
+■ 4. スタブサーバの作成方法（モック）
+
+【方法1】OpenAPI Generator の spring モック
+- generatorName: spring
+- configOptions:
+    interfaceOnly: true
+    useSpringBoot3: true
+- モック用Controllerが生成される → 自前でレスポンス定義可能
+
+【方法2】MockServerを使用（JUnit用・ローカル用）
+
+例：
+MockServerClient mockServer = new MockServerClient("localhost", 1080);
+mockServer.when(
+    request().withMethod("GET").withPath("/api/something")
+).respond(
+    response().withStatusCode(200)
+             .withHeader("Content-Type", "application/json")
+             .withBody("{ \"data\": \"mocked value\" }")
+);
+
+============================================================
+■ 5. 推奨開発フロー
+
+1. openapi.yml を更新
+2. mvn clean compile でクライアント再生成
+3. Serviceから呼び出す
+4. MockServerでスタブテスト
+5. application.yml で本番/テスト切り替え
+
+============================================================
+■ 備考
+
+- `dateLibrary: java8` は Java 21 環境でも推奨設定
+- WebClientライブラリのため、Reactive環境にも対応可能
+- モックで外部依存を排除したテストが可能
+
